@@ -160,11 +160,12 @@ class TestCases(unittest.TestCase):
         # check that the variable you saved after calling the function is a list
         self.assertEqual(type(listings), list)
         # check that each item in the list is a tuple
-        
+        for item in listings:
+            self.assertEqual(type(item),tuple)
         # check that the first title, cost, and listing id tuple is correct (open the search results html and find it)
-
+        self.assertEqual(listings[0],('Loft in Mission District', 210, '1944564'))
         # check that the last title is correct (open the search results html and find it)
-        pass
+        self.assertEqual(listings[-1],('Guest suite in Mission District', 238, '32871760') )
 
     # def test_get_listing_information(self):
     #     html_list = ["1623609",
