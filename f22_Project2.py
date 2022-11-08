@@ -90,19 +90,14 @@ def get_listing_information(listing_id):
         place_type = 'Entire Room'
 
     #finds number of bedrooms 
-    bedroom_info = soup.find('div', class_='_tqmy57')
-    for item in bedroom_info:
-        li_list = item.find_all('li', class_= 'l7n4lsf dir dir-ltr')
-        for info in li_list:
-            span_list = info.find_all('span')
-            for i in span_list:
-                bedrooms = re.findall(r'^(\d)\sbedrooms?$', i.text)
-                if bedrooms == []:
-                    rooms = 1
-                else:
-                    rooms = int(bedrooms[0])
+    bedrooms = soup.find('span', string = re.compile(r'[S|s]tudio|[B|b]edroom'))
+    bedrooms = re.findall(r'\d+\s',bedrooms.text)
+    if bedrooms == []:
+        bedrooms =1
+    else:
+        bedrooms = int(bedrooms[0])
 
-    tup = (policy_num, place_type, rooms)
+    tup = (policy_num, place_type, bedrooms)
     return tup
 
 
@@ -150,7 +145,14 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    data.sort(key = lambda x:x[1])
+    with open(filename, 'w', newline = '') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Listing Title', 'Cost', 'Listing ID', 'Policy Number', 'Place Type', 'Number of Bedrooms' ])
+        for i in range(len(data)):
+            writer.writerow(data[i])
+    print(csvfile)
+    return None
 
 
 def check_policy_numbers(data):
@@ -255,27 +257,26 @@ class TestCases(unittest.TestCase):
         # 'Guest suite in Mission District', 238, '32871760', 'STR-0004707', 'Entire Room', 1
         self.assertEqual(detailed_database[-1],('Guest suite in Mission District', 238, '32871760', 'STR-0004707', 'Entire Room', 1))
 
-    # def test_write_csv(self):
-    #     # call get_detailed_listing_database on "html_files/mission_district_search_results.html"
-    #     # and save the result to a variable
-    #     detailed_database = get_detailed_listing_database("html_files/mission_district_search_results.html")
-    #     # call write csv on the variable you saved
-    #     write_csv(detailed_database, "test.csv")
-    #     # read in the csv that you wrote
-    #     csv_lines = []
-    #     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'test.csv'), 'r') as f:
-    #         csv_reader = csv.reader(f)
-    #         for i in csv_reader:
-    #             csv_lines.append(i)
-    #     # check that there are 21 lines in the csv
-    #     self.assertEqual(len(csv_lines), 21)
-    #     # check that the header row is correct
-
-    #     # check that the next row is Private room in Mission District,82,51027324,Pending,Private Room,1
-
-    #     # check that the last row is Apartment in Mission District,399,28668414,Pending,Entire Room,2
-
-    #     pass
+    def test_write_csv(self):
+        # call get_detailed_listing_database on "html_files/mission_district_search_results.html"
+        # and save the result to a variable
+        detailed_database = get_detailed_listing_database("html_files/mission_district_search_results.html")
+        # call write csv on the variable you saved
+        write_csv(detailed_database, "test.csv")
+        # read in the csv that you wrote
+        csv_lines = []
+        with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'test.csv'), 'r') as f:
+            csv_reader = csv.reader(f)
+            for i in csv_reader:
+                csv_lines.append(i)
+        # check that there are 21 lines in the csv
+        self.assertEqual(len(csv_lines), 21)
+        # check that the header row is correct
+        self.assertEqual(csv_lines[0],['Listing Title', 'Cost', 'Listing ID', 'Policy Number', 'Place Type', 'Number of Bedrooms' ])
+        # check that the next row is Private room in Mission District,82,51027324,Pending,Private Room,1
+        self.assertEqual(csv_lines[1], ['Private room in Mission District','82','51027324','Pending','Private Room','1'])
+        # check that the last row is Apartment in Mission District,399,28668414,Pending,Entire Room,2
+        self.assertEqual(csv_lines[-1],['Apartment in Mission District','399','28668414','Pending','Entire Room','2'])
 
     # def test_check_policy_numbers(self):
     #     # call get_detailed_listing_database on "html_files/mission_district_search_results.html"
