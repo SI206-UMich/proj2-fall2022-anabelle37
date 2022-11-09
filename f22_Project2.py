@@ -5,6 +5,11 @@ import os
 import csv
 import unittest
 
+# Your name: Anabelle Phillips
+# Your student id: 11507172
+# Your email: anphilli@umich.edu
+# List who you have worked with on this project: Brooke Rossow, Sean Scully 
+
 def get_listings_from_search_results(html_file):
     """
     Write a function that creates a BeautifulSoup object on html_file. Parse
@@ -186,10 +191,6 @@ def check_policy_numbers(data):
                 output.append(tup[2])
     return output
 
-
-
-
-
 def extra_credit(listing_id):
     """
     There are few exceptions to the requirement of listers obtaining licenses
@@ -204,8 +205,24 @@ def extra_credit(listing_id):
     gone over their 90 day limit, else return True, indicating the lister has
     never gone over their limit.
     """
-    pass
-
+    f = open('html_files/listing_'+listing_id+'_reviews.html', 'r')
+    file = f.read()
+    f.close()
+    soup = BeautifulSoup(file, 'html.parser')
+    review_dates = soup.find_all('li' , class_='_1f1oir5')
+    date_list=[]
+    for i in range(len(review_dates)):
+        date_list.append(re.findall(r'\s\d{4}', review_dates[i].text))
+    count_dict = {}
+    for i in range(len(date_list)):
+        if date_list[i][0] in count_dict:
+            count_dict[date_list[i][0]]+=1
+        else:
+            count_dict[date_list[i][0]]=1
+    for i in count_dict:
+        if count_dict[i] > 90:
+            return False
+    return True 
 
 class TestCases(unittest.TestCase):
 
@@ -305,6 +322,10 @@ class TestCases(unittest.TestCase):
         self.assertEqual(type(invalid_listings[0]), str)
         # check that the first element in the list is '16204265'
         self.assertEqual(invalid_listings[0],'16204265')
+    
+    def test_extra_credit(self):
+        self.assertEqual(extra_credit('1944564'), True)
+        self.assertEqual(extra_credit('16204265'), False)
 
 
 if __name__ == '__main__':
